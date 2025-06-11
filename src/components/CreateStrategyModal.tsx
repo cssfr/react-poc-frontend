@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, FormEvent, ChangeEvent } from 'react'
 import { strategyApi } from '../services/api'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui'
 import { Button } from './ui'
@@ -7,17 +7,30 @@ import { Label } from './ui'
 import { Alert, AlertDescription } from './ui'
 import { AlertCircle } from 'lucide-react'
 
-export default function CreateStrategyModal({ open, onOpenChange, onSuccess }) {
-  const [formData, setFormData] = useState({
+interface CreateStrategyModalProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSuccess: () => void
+}
+
+interface FormData {
+  name: string
+  description: string
+  is_public: boolean
+  parameters: Record<string, unknown>
+}
+
+export default function CreateStrategyModal({ open, onOpenChange, onSuccess }: CreateStrategyModalProps) {
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
     is_public: false,
     parameters: {}
   })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -31,15 +44,15 @@ export default function CreateStrategyModal({ open, onOpenChange, onSuccess }) {
         is_public: false,
         parameters: {}
       })
-    } catch (err) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleInputChange = (field) => (e) => {
-    const value = field === 'is_public' ? e.target.checked : e.target.value
+  const handleInputChange = (field: keyof FormData) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = field === 'is_public' && 'checked' in e.target ? (e.target as HTMLInputElement).checked : e.target.value
     setFormData(prev => ({
       ...prev,
       [field]: value

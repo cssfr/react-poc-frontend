@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { useTheme } from '../contexts/ThemeContext'
-import { backtestApi, strategyApi, userApi } from '../services/api'
+import { backtestApi, strategyApi, userApi, Backtest, Strategy, User } from '../services/api'
 import { Button } from './ui'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui'
 import { Badge } from './ui'
@@ -9,23 +9,24 @@ import { Alert, AlertDescription } from './ui'
 import { cn, formatCurrency, formatPercentage, formatDate, getStatusColor } from '../lib/utils'
 import {
   TrendingUp, BarChart3, Settings, Plus, Moon, Sun, Laptop,
-  LogOut, User, Activity, DollarSign, TrendingDown, Clock,
-  Play, Pause, RefreshCw, AlertCircle, CheckCircle, XCircle
+  LogOut, Activity, DollarSign, TrendingDown, Clock,
+  Play, Pause, RefreshCw, AlertCircle, CheckCircle, XCircle,
+  User as UserIcon
 } from 'lucide-react'
 import CreateBacktestModal from './CreateBacktestModal'
 import CreateStrategyModal from './CreateStrategyModal'
 import BacktestDetailsModal from './BacktestDetailsModal'
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard')
-  const [backtests, setBacktests] = useState([])
-  const [strategies, setStrategies] = useState([])
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [showCreateBacktest, setShowCreateBacktest] = useState(false)
-  const [showCreateStrategy, setShowCreateStrategy] = useState(false)
-  const [selectedBacktest, setSelectedBacktest] = useState(null)
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'backtests' | 'strategies'>('dashboard')
+  const [backtests, setBacktests] = useState<Backtest[]>([])
+  const [strategies, setStrategies] = useState<Strategy[]>([])
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showCreateBacktest, setShowCreateBacktest] = useState<boolean>(false)
+  const [showCreateStrategy, setShowCreateStrategy] = useState<boolean>(false)
+  const [selectedBacktest, setSelectedBacktest] = useState<Backtest | null>(null)
   const { theme, setTheme } = useTheme()
 
   useEffect(() => {
@@ -81,7 +82,13 @@ export default function Dashboard() {
     )
   }
 
-  const StatCard = ({ title, value, change, icon: Icon, trend }) => (
+  const StatCard: React.FC<{
+    title: string
+    value: string | number
+    change?: string
+    icon: React.ElementType
+    trend?: 'up' | 'down'
+  }> = ({ title, value, change, icon: Icon, trend }) => (
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
@@ -181,7 +188,7 @@ export default function Dashboard() {
           {user && (
             <div className="mt-8 p-4 rounded-lg bg-muted">
               <div className="flex items-center gap-3">
-                <User className="h-8 w-8 text-muted-foreground" />
+                <UserIcon className="h-8 w-8 text-muted-foreground" />
                 <div>
                   <p className="font-medium">{user.email}</p>
                   <p className="text-sm text-muted-foreground">Premium User</p>
@@ -214,6 +221,8 @@ export default function Dashboard() {
                 <StatCard
                   title="Total Backtests"
                   value={stats.totalBacktests}
+                  change={undefined}
+                  trend={undefined}
                   icon={Activity}
                 />
                 <StatCard
@@ -233,6 +242,8 @@ export default function Dashboard() {
                 <StatCard
                   title="Strategies"
                   value={stats.totalStrategies}
+                  change={undefined}
+                  trend={undefined}
                   icon={Settings}
                 />
               </div>
