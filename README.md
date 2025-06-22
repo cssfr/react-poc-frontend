@@ -10,6 +10,9 @@
    ```
 2. Install dependencies:
    ```
+   python -m venv venv
+   source venv/bin/activate
+
    npm install
    ```
 3. Run in development mode:
