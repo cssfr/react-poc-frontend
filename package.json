@@ -12,10 +12,9 @@
     "lucide-react": "^0.263.1",
     "tailwind-merge": "^2.6.0",
     "@klinecharts/pro": "^0.1.1",
-    "klinecharts": "^9.8.12"
+    "klinecharts": "^9.8.12",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "tailwind-merge": "^2.6.0"
+    "react-dom": "^18.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
