@@ -12,7 +12,9 @@
     "@supabase/supabase-js": "^2.0.0",
     "lucide-react": "^0.263.1",
     "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
+    "tailwind-merge": "^2.0.0",
+    "@klinecharts/pro": "^0.1.1",
+    "klinecharts": "^9.8.12"
   },
   "devDependencies": {
     "vite": "^6.3.5",
