@@ -11,14 +11,19 @@ import {
   TrendingUp, BarChart3, Settings, Plus, Moon, Sun, Laptop,
   LogOut, Activity, DollarSign, TrendingDown, Clock,
   Play, Pause, RefreshCw, AlertCircle, CheckCircle, XCircle,
-  User as UserIcon
+  User as UserIcon, ChevronsLeft
 } from 'lucide-react'
 import CreateBacktestModal from './CreateBacktestModal'
 import CreateStrategyModal from './CreateStrategyModal'
 import BacktestDetailsModal from './BacktestDetailsModal'
+import ChartComponent from './ChartComponent'
+
+type NavItemId = 'dashboard' | 'backtests' | 'strategies' | 'charts';
+type ThemeValue = 'light' | 'dark' | 'system';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'backtests' | 'strategies'>('dashboard')
+  const [activeTab, setActiveTab] = useState<NavItemId>('dashboard')
+  const [sidebarMinimized, setSidebarMinimized] = useState(false)
   const [backtests, setBacktests] = useState<Backtest[]>([])
   const [strategies, setStrategies] = useState<Strategy[]>([])
   const [user, setUser] = useState<User | null>(null)
@@ -57,9 +62,9 @@ export default function Dashboard() {
 
   const ThemeToggle = () => {
     const themes = [
-      { value: 'light', icon: Sun },
-      { value: 'dark', icon: Moon },
-      { value: 'system', icon: Laptop },
+      { value: 'light' as const, icon: Sun },
+      { value: 'dark' as const, icon: Moon },
+      { value: 'system' as const, icon: Laptop },
     ]
 
     return (
@@ -139,12 +144,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex h-screen flex-col bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
+      <header className="flex-shrink-0 border-b bg-card">
+        <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary text-primary-foreground">
+            <div className="rounded-lg bg-primary p-2 text-primary-foreground">
               <TrendingUp className="h-6 w-6" />
             </div>
             <h1 className="text-xl font-bold">BacktestPro</h1>
@@ -153,53 +158,80 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="mr-2 h-4 w-4" />
               Sign Out
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <nav className="w-64 border-r bg-card p-6">
-          <div className="space-y-2">
+        <nav
+          className={cn(
+            'flex flex-col overflow-y-auto border-r bg-card transition-all duration-300 ease-in-out',
+            sidebarMinimized ? 'w-20' : 'w-64'
+          )}
+        >
+          <div className="space-y-1">
             {[
-              { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-              { id: 'backtests', label: 'Backtests', icon: Activity },
-              { id: 'strategies', label: 'Strategies', icon: Settings },
+              { id: 'dashboard' as const, label: 'Dashboard', icon: BarChart3 },
+              { id: 'backtests' as const, label: 'Backtests', icon: Activity },
+              { id: 'strategies' as const, label: 'Strategies', icon: Settings },
+              { id: 'charts' as const, label: 'Charts', icon: BarChart3 },
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors',
+                  'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors',
                   activeTab === id
                     ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-accent hover:text-accent-foreground'
+                    : 'hover:bg-accent hover:text-accent-foreground',
+                  sidebarMinimized && 'justify-center'
                 )}
               >
-                <Icon className="h-4 w-4" />
-                {label}
+                <Icon className="h-5 w-5" />
+                {!sidebarMinimized && <span>{label}</span>}
               </button>
             ))}
           </div>
 
-          {user && (
-            <div className="mt-8 p-4 rounded-lg bg-muted">
-              <div className="flex items-center gap-3">
-                <UserIcon className="h-8 w-8 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">{user.email}</p>
-                  <p className="text-sm text-muted-foreground">Premium User</p>
+          <div className="mt-auto">
+            {user && !sidebarMinimized && (
+              <div className="mb-2 rounded-lg bg-muted p-2">
+                <div className="flex items-center gap-2">
+                  <UserIcon className="h-8 w-8 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">{user.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Premium User
+                    </p>
+                  </div>
                 </div>
               </div>
+            )}
+            <div>
+              <button
+                onClick={() => setSidebarMinimized(!sidebarMinimized)}
+                className={cn(
+                  'flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground',
+                  sidebarMinimized ? 'justify-center' : 'justify-end'
+                )}
+              >
+                <ChevronsLeft
+                  className={cn(
+                    'h-5 w-5 transition-transform duration-300',
+                    sidebarMinimized && 'rotate-180'
+                  )}
+                />
+              </button>
             </div>
-          )}
+          </div>
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 overflow-y-auto p-6">
           {error && (
             <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-4 w-4" />
@@ -443,6 +475,25 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+          
+          {activeTab === 'charts' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">Charts</h2>
+                <p className="text-muted-foreground">
+                  Real-time market data and technical analysis.
+                </p>
+              </div>
+
+              <div className="rounded-lg border bg-card">
+                <ChartComponent 
+                  height="600px"
+                  className="w-full"
+                />
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
 
