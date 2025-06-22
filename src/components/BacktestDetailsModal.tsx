@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { backtestApi, tradeApi } from '../services/api'
+import { backtestApi, tradeApi, Backtest, Trade } from '../services/api'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui'
 import { Button } from './ui'
 import { Badge } from './ui'
@@ -11,10 +11,17 @@ import {
   Calendar, Target, Trash2, AlertCircle, RefreshCw
 } from 'lucide-react'
 
-export default function BacktestDetailsModal({ backtest, open, onOpenChange, onUpdate }) {
-  const [trades, setTrades] = useState([])
+interface BacktestDetailsModalProps {
+  backtest: Backtest | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onUpdate: () => void
+}
+
+export default function BacktestDetailsModal({ backtest, open, onOpenChange, onUpdate }: BacktestDetailsModalProps) {
+  const [trades, setTrades] = useState<Trade[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
@@ -30,8 +37,8 @@ export default function BacktestDetailsModal({ backtest, open, onOpenChange, onU
     try {
       const tradesData = await tradeApi.getByBacktestId(backtest.id)
       setTrades(tradesData)
-    } catch (err) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -47,8 +54,8 @@ export default function BacktestDetailsModal({ backtest, open, onOpenChange, onU
       await backtestApi.delete(backtest.id)
       onUpdate()
       onOpenChange(false)
-    } catch (err) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setDeleteLoading(false)
     }

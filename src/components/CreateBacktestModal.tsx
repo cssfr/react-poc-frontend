@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { backtestApi } from '../services/api'
+import React, { useState, FormEvent, ChangeEvent } from 'react'
+import { backtestApi, Strategy } from '../services/api'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui'
 import { Button } from './ui'
 import { Input } from './ui'
@@ -8,8 +8,24 @@ import { Select, SelectItem } from './ui'
 import { Alert, AlertDescription } from './ui'
 import { AlertCircle } from 'lucide-react'
 
-export default function CreateBacktestModal({ open, onOpenChange, strategies, onSuccess }) {
-  const [formData, setFormData] = useState({
+interface CreateBacktestModalProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  strategies: Strategy[]
+  onSuccess: () => void
+}
+
+interface FormData {
+  name: string
+  strategy: string
+  symbol: string
+  start_date: string
+  end_date: string
+  initial_capital: string
+}
+
+export default function CreateBacktestModal({ open, onOpenChange, strategies, onSuccess }: CreateBacktestModalProps) {
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     strategy: '',
     symbol: '',
@@ -18,9 +34,9 @@ export default function CreateBacktestModal({ open, onOpenChange, strategies, on
     initial_capital: '10000'
   })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -39,14 +55,14 @@ export default function CreateBacktestModal({ open, onOpenChange, strategies, on
         end_date: '',
         initial_capital: '10000'
       })
-    } catch (err) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleInputChange = (field) => (e) => {
+  const handleInputChange = (field: keyof FormData) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
       [field]: e.target.value

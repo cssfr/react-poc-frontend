@@ -1,11 +1,11 @@
 import { clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-export function cn(...inputs) {
+export function cn(...inputs: (string | undefined | false | null)[]): string {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(value, currency = 'USD') {
+export function formatCurrency(value: number | null | undefined, currency: string = 'USD'): string {
   if (value == null) return '--'
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -15,12 +15,12 @@ export function formatCurrency(value, currency = 'USD') {
   }).format(value)
 }
 
-export function formatPercentage(value) {
+export function formatPercentage(value: number | null | undefined): string {
   if (value == null) return '--'
   return `${(value * 100).toFixed(2)}%`
 }
 
-export function formatDate(dateString) {
+export function formatDate(dateString: string | null | undefined): string {
   if (!dateString) return '--'
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -29,7 +29,7 @@ export function formatDate(dateString) {
   })
 }
 
-export function formatDateTime(dateString) {
+export function formatDateTime(dateString: string | null | undefined): string {
   if (!dateString) return '--'
   return new Date(dateString).toLocaleString('en-US', {
     year: 'numeric',
@@ -40,7 +40,7 @@ export function formatDateTime(dateString) {
   })
 }
 
-export function getStatusColor(status) {
+export function getStatusColor(status: string | null | undefined): string {
   switch (status?.toLowerCase()) {
     case 'completed':
       return 'text-success bg-success/10 border-success/20'
