@@ -147,7 +147,7 @@ export default function Dashboard() {
     <div className="flex h-screen flex-col bg-background">
       {/* Header */}
       <header className="flex-shrink-0 border-b bg-card">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-primary p-2 text-primary-foreground">
               <TrendingUp className="h-6 w-6" />
@@ -170,7 +170,7 @@ export default function Dashboard() {
         <nav
           className={cn(
             'flex flex-col overflow-y-auto border-r bg-card transition-all duration-300 ease-in-out',
-            sidebarMinimized ? 'w-20' : 'w-64'
+            sidebarMinimized ? 'w-20' : 'w-56'
           )}
         >
           <div className="space-y-1">
@@ -184,7 +184,7 @@ export default function Dashboard() {
                 key={id}
                 onClick={() => setActiveTab(id)}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors',
+                  'flex w-full items-center gap-3 rounded-lg px-3 py-4 text-left transition-colors',
                   activeTab === id
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-accent hover:text-accent-foreground',
@@ -197,9 +197,9 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div className="mt-auto">
+          <div className="mt-auto p-2">
             {user && !sidebarMinimized && (
-              <div className="mb-2 rounded-lg bg-muted p-2">
+              <div className="mb-2 rounded-lg bg-muted p-3">
                 <div className="flex items-center gap-2">
                   <UserIcon className="h-8 w-8 text-muted-foreground" />
                   <div>
@@ -215,7 +215,7 @@ export default function Dashboard() {
               <button
                 onClick={() => setSidebarMinimized(!sidebarMinimized)}
                 className={cn(
-                  'flex w-full items-center gap-3 p-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground',
+                  'flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground',
                   sidebarMinimized ? 'justify-center' : 'justify-end'
                 )}
               >
