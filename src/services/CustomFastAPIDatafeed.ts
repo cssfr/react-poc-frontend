@@ -2,6 +2,8 @@ import { KLineData } from 'klinecharts';
 import { Datafeed, SymbolInfo, Period, DatafeedSubscribeCallback } from '@klinecharts/pro';
 import { supabase } from '../supabaseClient';
 
+const API_VERSION = '/api/v1';
+
 interface CacheEntry {
     data: KLineData[];
     timestamp: number;
@@ -198,21 +200,55 @@ export class CustomFastAPIDatafeed implements Datafeed {
         const endDate = new Date(to).toISOString().split('T')[0];
         const timeframe = `${period.multiplier}${period.timespan.charAt(0)}`;
         
-        const url = `${this.baseUrl}/api/ohlcv/data/${symbol.ticker}?` + 
-                   `start_date=${startDate}&end_date=${endDate}&` +
+        const url = `${this.baseUrl}${API_VERSION}/ohlcv/data?` + 
+                   `symbol=${symbol.ticker}&start_date=${startDate}&end_date=${endDate}&` +
                    `timeframe=${timeframe}&source_resolution=1Y`;
 
         console.log('Fetching data from:', url);
         const response = await this.fetchWithAuth(url);
         
-        const data = response.data.map(([timestamp, open, high, low, close, volume]: number[]) => ({
-            timestamp: timestamp * 1000,
-            open,
-            high,
-            low,
-            close,
-            volume
-        }));
+        // Handle different possible response structures
+        let rawData: any[];
+        if (Array.isArray(response)) {
+            rawData = response;
+        } else if (response.data && Array.isArray(response.data)) {
+            rawData = response.data;
+        } else if (response.results && Array.isArray(response.results)) {
+            rawData = response.results;
+        } else if (response.ohlcv && Array.isArray(response.ohlcv)) {
+            rawData = response.ohlcv;
+        } else if (response.values && Array.isArray(response.values)) {
+            rawData = response.values;
+        } else {
+            console.error('Unexpected response structure:', response);
+            throw new Error('Invalid data format received from API');
+        }
+        
+        // Handle both old array format and new object format
+        const data = rawData.map((item: any) => {
+            if (Array.isArray(item)) {
+                // Old format: [timestamp, open, high, low, close, volume]
+                const [timestamp, open, high, low, close, volume] = item;
+                return {
+                    timestamp: timestamp * 1000,
+                    open,
+                    high,
+                    low,
+                    close,
+                    volume
+                };
+            } else {
+                // New v1 format: object with named properties
+                return {
+                    timestamp: (item.unix_time || item.timestamp) * 1000,
+                    open: item.open,
+                    high: item.high,
+                    low: item.low,
+                    close: item.close,
+                    volume: item.volume
+                };
+            }
+        });
 
         // Store in cache with timestamp
         this.cache.set(cacheKey, {

@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import { useTheme } from '../contexts/ThemeContext'
+import { useTheme } from '../lib/contexts/ThemeContext'
 import { backtestApi, strategyApi, userApi, Backtest, Strategy, User } from '../services/api'
 import { Button } from './ui'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui'
 import { Badge } from './ui'
 import { Alert, AlertDescription } from './ui'
-import { cn, formatCurrency, formatPercentage, formatDate, getStatusColor } from '../lib/utils'
+import { cn, formatPercentage, formatDate, getStatusColor } from '../lib/utils'
 import {
   TrendingUp, BarChart3, Settings, Plus, Moon, Sun, Laptop,
   LogOut, Activity, DollarSign, TrendingDown, Clock,
-  Play, Pause, RefreshCw, AlertCircle, CheckCircle, XCircle,
+  Play, RefreshCw, AlertCircle, CheckCircle, XCircle,
   User as UserIcon, ChevronsLeft
 } from 'lucide-react'
 import CreateBacktestModal from './CreateBacktestModal'
@@ -19,7 +19,6 @@ import BacktestDetailsModal from './BacktestDetailsModal'
 import ChartComponent from './ChartComponent'
 
 type NavItemId = 'dashboard' | 'backtests' | 'strategies' | 'charts';
-type ThemeValue = 'light' | 'dark' | 'system';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<NavItemId>('dashboard')
@@ -50,7 +49,7 @@ export default function Dashboard() {
       setStrategies(strategiesData)
       setUser(userData)
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
     }

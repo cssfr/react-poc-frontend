@@ -1,6 +1,7 @@
 import { supabase } from '../supabaseClient'
 
 const API_BASE_URL = import.meta.env.VITE_FASTAPI_URL
+const API_VERSION = '/api/v1'
 
 export interface ApiErrorData {
   detail?: string
@@ -99,25 +100,25 @@ async function apiRequest<T = unknown>(endpoint: string, options: ApiRequestOpti
 // Backtest API
 type BacktestCreate = Omit<Backtest, 'id' | 'created_at' | 'final_value' | 'total_return' | 'sharpe_ratio' | 'max_drawdown' | 'win_rate' | 'total_trades' | 'status'>
 export const backtestApi = {
-  getAll: (): Promise<Backtest[]> => apiRequest<Backtest[]>('/api/backtests'),
-  getById: (id: string): Promise<Backtest> => apiRequest<Backtest>(`/api/backtests/${id}`),
-  create: (data: BacktestCreate): Promise<Backtest> => apiRequest<Backtest>('/api/backtests', {
+  getAll: (): Promise<Backtest[]> => apiRequest<Backtest[]>(`${API_VERSION}/backtests`),
+  getById: (id: string): Promise<Backtest> => apiRequest<Backtest>(`${API_VERSION}/backtests/${id}`),
+  create: (data: BacktestCreate): Promise<Backtest> => apiRequest<Backtest>(`${API_VERSION}/backtests`, {
     method: 'POST',
     body: JSON.stringify(data),
   }),
-  update: (id: string, data: Partial<BacktestCreate>): Promise<Backtest> => apiRequest<Backtest>(`/api/backtests/${id}`, {
+  update: (id: string, data: Partial<BacktestCreate>): Promise<Backtest> => apiRequest<Backtest>(`${API_VERSION}/backtests/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
-  delete: (id: string): Promise<void> => apiRequest<void>(`/api/backtests/${id}`, {
+  delete: (id: string): Promise<void> => apiRequest<void>(`${API_VERSION}/backtests/${id}`, {
     method: 'DELETE',
   }),
 }
 
 // Trades API
 export const tradeApi = {
-  getByBacktestId: (backtestId: string): Promise<Trade[]> => apiRequest<Trade[]>(`/api/backtests/${backtestId}/trades`),
-  create: (data: Omit<Trade, 'id'>): Promise<Trade> => apiRequest<Trade>('/api/trades', {
+  getByBacktestId: (backtestId: string): Promise<Trade[]> => apiRequest<Trade[]>(`${API_VERSION}/backtests/${backtestId}/trades`),
+  create: (data: Omit<Trade, 'id'>): Promise<Trade> => apiRequest<Trade>(`${API_VERSION}/trades`, {
     method: 'POST',
     body: JSON.stringify(data),
   }),
@@ -126,24 +127,24 @@ export const tradeApi = {
 // Strategies API
 type StrategyCreate = Omit<Strategy, 'id' | 'created_at'>
 export const strategyApi = {
-  getAll: (includePublic: boolean = true): Promise<Strategy[]> => apiRequest<Strategy[]>(`/api/strategies?include_public=${includePublic}`),
-  getById: (id: string): Promise<Strategy> => apiRequest<Strategy>(`/api/strategies/${id}`),
-  create: (data: StrategyCreate): Promise<Strategy> => apiRequest<Strategy>('/api/strategies', {
+  getAll: (includePublic: boolean = true): Promise<Strategy[]> => apiRequest<Strategy[]>(`${API_VERSION}/strategies?include_public=${includePublic}`),
+  getById: (id: string): Promise<Strategy> => apiRequest<Strategy>(`${API_VERSION}/strategies/${id}`),
+  create: (data: StrategyCreate): Promise<Strategy> => apiRequest<Strategy>(`${API_VERSION}/strategies`, {
     method: 'POST',
     body: JSON.stringify(data),
   }),
-  update: (id: string, data: Partial<StrategyCreate>): Promise<Strategy> => apiRequest<Strategy>(`/api/strategies/${id}`, {
+  update: (id: string, data: Partial<StrategyCreate>): Promise<Strategy> => apiRequest<Strategy>(`${API_VERSION}/strategies/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
-  delete: (id: string): Promise<void> => apiRequest<void>(`/api/strategies/${id}`, {
+  delete: (id: string): Promise<void> => apiRequest<void>(`${API_VERSION}/strategies/${id}`, {
     method: 'DELETE',
   }),
 }
 
 // User API
 export const userApi = {
-  getCurrentUser: (): Promise<User> => apiRequest<User>('/api/user'),
+  getCurrentUser: (): Promise<User> => apiRequest<User>(`${API_VERSION}/users`),
 }
 
 // Legacy items API (for backward compatibility)
@@ -151,13 +152,3 @@ export const itemsApi = {
   getAll: (): Promise<unknown[]> => apiRequest<unknown[]>('/items'),
 }
 
-declare global {
-  interface ImportMeta {
-    env: {
-      VITE_FASTAPI_URL: string
-      VITE_SUPABASE_URL: string
-      VITE_SUPABASE_ANON_KEY: string
-      [key: string]: string
-    }
-  }
-}
