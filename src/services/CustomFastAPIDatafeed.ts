@@ -241,4 +241,12 @@ export class CustomFastAPIDatafeed implements Datafeed {
         const timeframe = this.getTimeframeCode(period.multiplier, period.timespan);
         
         const url = `${this.baseUrl}${API_VERSION}/ohlcv/data?` + 
-                   `
+                   `symbol=${symbol.ticker}&start_date=${startDate}&end_date=${endDate}&` +
+                   `timeframe=${timeframe}&source_resolution=1Y`;
+
+        console.log('Fetching data from:', url);
+        const response = await this.fetchWithAuth(url);
+
+        return response.data;
+    }
+}
