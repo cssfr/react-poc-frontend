@@ -1,6 +1,8 @@
 import { KLineData } from 'klinecharts';
 import { Datafeed, SymbolInfo, Period, DatafeedSubscribeCallback } from '@klinecharts/pro';
 import { supabase } from '../supabaseClient';
+import { instrumentsApi } from './api';
+import type { Instrument } from '../types/instruments';
 
 const API_VERSION = '/api/v1';
 
@@ -15,6 +17,11 @@ interface CacheConfig {
     persist: boolean;
 }
 
+interface InstrumentsCacheEntry {
+    instruments: Instrument[];
+    timestamp: number;
+}
+
 /**
  * Custom Datafeed implementation for FastAPI backend with caching and Supabase auth
  */
@@ -23,15 +30,19 @@ export class CustomFastAPIDatafeed implements Datafeed {
     private cache: Map<string, CacheEntry> = new Map();
     private readonly cacheConfig: CacheConfig;
     
+    // Instruments cache
+    private instrumentsCache: InstrumentsCacheEntry | null = null;
+    private readonly instrumentsCacheExpiry: number = 5 * 60 * 1000; // 5 minutes
+    
     constructor(
         baseUrl: string, 
         config: Partial<CacheConfig> = {}
     ) {
         this.baseUrl = baseUrl;
         this.cacheConfig = {
-            maxEntries: config.maxEntries || 100, // Default max cache entries
-            expirationTime: config.expirationTime || 5 * 60 * 1000, // Default 5 minutes
-            persist: config.persist ?? false, // Default to false, if true, cache will be saved to localStorage
+            maxEntries: config.maxEntries || 100,
+            expirationTime: config.expirationTime || 5 * 60 * 1000,
+            persist: config.persist ?? false,
         };
         this.initializeCache();
     }
@@ -149,15 +160,52 @@ export class CustomFastAPIDatafeed implements Datafeed {
         return await response.json();
     }
 
-    async searchSymbols(_search?: string): Promise<SymbolInfo[]> {
-        // Static implementation - extend this if you need dynamic symbol search
-        return [{
-            ticker: 'ES',
-            name: 'E-mini S&P 500',
-            shortName: 'ES',
-            exchange: 'CME',
-            market: 'FUTURES'
-        }];
+    async searchSymbols(search?: string): Promise<SymbolInfo[]> {
+        try {
+            const instruments = await this.getInstruments();
+            
+            if (instruments.length === 0) {
+                // Fallback to hardcoded ES if no instruments available
+                console.log('⚠️ No instruments available, using fallback ES');
+                return [{
+                    ticker: 'ES',
+                    name: 'E-mini S&P 500',
+                    shortName: 'ES',
+                    exchange: 'CME',
+                    market: 'FUTURES',
+                    type: 'FUT'
+                }];
+            }
+
+            // Convert all instruments to SymbolInfo format
+            let symbolInfos = instruments.map(instrument => this.instrumentToSymbolInfo(instrument));
+
+            // Apply search filter if provided
+            if (search && search.trim()) {
+                const searchLower = search.toLowerCase().trim();
+                symbolInfos = symbolInfos.filter(symbol => 
+                    symbol.ticker.toLowerCase().includes(searchLower) ||
+                    (symbol.name || '').toLowerCase().includes(searchLower) ||
+                    (symbol.shortName || '').toLowerCase().includes(searchLower)
+                );
+            }
+
+            console.log(`📊 Returning ${symbolInfos.length} instruments for search: "${search || 'all'}"`);
+            return symbolInfos;
+            
+        } catch (error) {
+            console.error('❌ Error in searchSymbols:', error);
+            
+            // Ultimate fallback with all required properties
+            return [{
+                ticker: 'ES',
+                name: 'E-mini S&P 500',
+                shortName: 'ES',
+                exchange: 'CME',
+                market: 'FUTURES',
+                type: 'FUT'
+            }];
+        }
     }
 
     /**
@@ -297,4 +345,56 @@ export class CustomFastAPIDatafeed implements Datafeed {
 
     subscribe(_symbol: SymbolInfo, _period: Period, _callback: DatafeedSubscribeCallback): void {}
     unsubscribe(_symbol: SymbolInfo, _period: Period): void {}
+
+    /**
+     * Convert Instrument to SymbolInfo format required by KLineChartPro
+     */
+    private instrumentToSymbolInfo(instrument: Instrument): SymbolInfo {
+        return {
+            ticker: instrument.symbol,
+            name: instrument.name || instrument.symbol, // Fallback to symbol if name is undefined
+            shortName: instrument.shortName || instrument.symbol, // Fallback to symbol if shortName is undefined
+            exchange: instrument.exchange || 'UNKNOWN', // Fallback if exchange is undefined
+            market: instrument.market || 'UNKNOWN', // Fallback if market is undefined
+            type: instrument.type || 'UNKNOWN', // Fallback if type is undefined
+        };
+    }
+
+    /**
+     * Get instruments from cache or API
+     */
+    private async getInstruments(): Promise<Instrument[]> {
+        const now = Date.now();
+        
+        // Check if cache is valid
+        if (this.instrumentsCache && 
+            (now - this.instrumentsCache.timestamp) < this.instrumentsCacheExpiry) {
+            console.log('📊 Returning cached instruments');
+            return this.instrumentsCache.instruments;
+        }
+
+        try {
+            console.log('📊 Fetching instruments from API');
+            const response = await instrumentsApi.getAll();
+            
+            // Update cache
+            this.instrumentsCache = {
+                instruments: response.instruments,
+                timestamp: now
+            };
+            
+            return response.instruments;
+        } catch (error) {
+            console.error('❌ Failed to fetch instruments:', error);
+            
+            // Return cached data if available, even if expired
+            if (this.instrumentsCache) {
+                console.log('⚠️ Using expired cache due to API failure');
+                return this.instrumentsCache.instruments;
+            }
+            
+            // Ultimate fallback - return empty array
+            return [];
+        }
+    }
 }

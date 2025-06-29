@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient'
+import type { InstrumentsResponse } from '../types/instruments'
 
 const API_BASE_URL = import.meta.env.VITE_FASTAPI_URL
 const API_VERSION = '/api/v1'
@@ -145,6 +146,11 @@ export const strategyApi = {
 // User API
 export const userApi = {
   getCurrentUser: (): Promise<User> => apiRequest<User>(`${API_VERSION}/users`),
+}
+
+// Instruments API
+export const instrumentsApi = {
+  getAll: (): Promise<InstrumentsResponse> => apiRequest<InstrumentsResponse>(`${API_VERSION}/ohlcv/instruments`),
 }
 
 // Legacy items API (for backward compatibility)

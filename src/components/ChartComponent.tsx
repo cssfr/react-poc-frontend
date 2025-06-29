@@ -127,48 +127,82 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   useEffect(() => {
     if (!containerRef.current || chartRef.current) return;
 
-    try {
-      // Generate initial theme configuration
-      const klineTheme = getKLineChartTheme(dashboardTheme, chartTheme);
-      const chartStyles = generateChartStyles(dashboardTheme, chartTheme);
+    const initializeChart = async () => {
+      try {
+        if (!containerRef.current) {
+          console.error('❌ Container ref became null during initialization');
+          return;
+        }
 
-      // Create chart instance
-      chartRef.current = new KLineChartPro({
-        container: containerRef.current,
-        locale: 'en-US',
-        timezone: 'UTC',
-        theme: klineTheme,
-        styles: chartStyles,
-        watermark: `<svg class="logo" viewBox="0 0 160 160"></svg>`,
+        // Generate initial theme configuration
+        const klineTheme = getKLineChartTheme(dashboardTheme, chartTheme);
+        const chartStyles = generateChartStyles(dashboardTheme, chartTheme);
         
-        // Default symbol configuration
-        symbol: {
-          exchange: 'CME',
-          market: 'FUTURES',
-          name: 'E-mini S&P 500',
-          shortName: 'ES',
-          ticker: 'ES',
-          type: 'FUT',
-        },
+        // Create single datafeed instance
+        const datafeed = new CustomFastAPIDatafeed(import.meta.env.VITE_FASTAPI_URL);
         
-        // Default period and available periods
-        period: { multiplier: 1, timespan: 'hour', text: '1h' },
-        periods: DEFAULT_PERIODS,
+        // Get default symbol using the same datafeed
+        let defaultSymbol;
+        try {
+          const symbols = await datafeed.searchSymbols();
+          if (symbols.length > 0) {
+            const esSymbol = symbols.find(s => s.ticker === 'ES');
+            const selectedSymbol = esSymbol || symbols[0];
+            
+            defaultSymbol = {
+              exchange: selectedSymbol.exchange || 'UNKNOWN',
+              market: selectedSymbol.market || 'UNKNOWN',
+              name: selectedSymbol.name || selectedSymbol.ticker,
+              shortName: selectedSymbol.shortName || selectedSymbol.ticker,
+              ticker: selectedSymbol.ticker,
+              type: selectedSymbol.type || 'FUT',
+            };
+          } else {
+            throw new Error('No symbols available');
+          }
+        } catch (error) {
+          console.error('⚠️ Using fallback ES:', error);
+          defaultSymbol = {
+            exchange: 'CME',
+            market: 'FUTURES',
+            name: 'E-mini S&P 500',
+            shortName: 'ES',
+            ticker: 'ES',
+            type: 'FUT',
+          };
+        }
+
+        // Create chart instance
+        chartRef.current = new KLineChartPro({
+          container: containerRef.current,
+          locale: 'en-US',
+          timezone: 'UTC',
+          theme: klineTheme,
+          styles: chartStyles,
+          watermark: `<svg class="logo" viewBox="0 0 160 160"></svg>`,
+          
+          // Dynamic symbol configuration
+          symbol: defaultSymbol,
+          
+          // Default period and available periods
+          period: { multiplier: 1, timespan: 'hour', text: '1h' },
+          periods: DEFAULT_PERIODS,
+          
+          // Technical indicators
+          subIndicators: ['VOL'],
+          
+          // Data source - reuse the same datafeed instance
+          datafeed: datafeed
+        });
         
-        // Technical indicators
-        subIndicators: ['VOL'],
+        console.log('📈 Chart initialized successfully with symbol:', defaultSymbol.ticker);
         
-        // Data source
-        datafeed: new CustomFastAPIDatafeed(
-          import.meta.env.VITE_FASTAPI_URL
-        )
-      });
-      
-      console.log('📈 Chart initialized successfully');
-      
-    } catch (error) {
-      console.error('❌ Failed to initialize chart:', error);
-    }
+      } catch (error) {
+        console.error('❌ Failed to initialize chart:', error);
+      }
+    };
+
+    initializeChart();
     
     // Cleanup function
     return () => {
