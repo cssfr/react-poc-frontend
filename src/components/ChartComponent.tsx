@@ -61,7 +61,7 @@ const DEFAULT_PERIODS = [
   { multiplier: 1, timespan: 'week', text: '1W' },
   { multiplier: 1, timespan: 'month', text: '1M' },
   { multiplier: 1, timespan: 'year', text: '1Y' }
-] as const;
+];
 
 /**
  * Chart Component
