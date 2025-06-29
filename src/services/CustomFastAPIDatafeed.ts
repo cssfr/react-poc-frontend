@@ -217,79 +217,28 @@ export class CustomFastAPIDatafeed implements Datafeed {
             return cachedEntry.data;
         }
 
-        // Add temporary debug logging to identify Y-button timestamp issue
-        console.log(`🔍 Debug Y-button: timespan='${period.timespan}', multiplier=${period.multiplier}`);
-        console.log(`🔍 Debug Y-button: from=${from}, to=${to}`);
-        console.log(`🔍 Debug Y-button: from date=${new Date(from)}, to date=${new Date(to)}`);
+        // Fix klinecharts yearly timeframe calculation bug
+        let correctedFrom = from;
+        let correctedTo = to;
+        
+        // If from date is way in the future (like year 2469), fix the calculation
+        const fromYear = new Date(from).getFullYear();
+        const toYear = new Date(to).getFullYear();
+        
+        if (fromYear > toYear + 10) { // If from is more than 10 years after to, it's clearly wrong
+            console.warn(`🚨 Detected wrong from date: ${fromYear}, correcting for ${period.timespan} timeframe`);
+            
+            // For yearly timeframe, go back reasonable number of years from 'to' date
+            const yearsBack = period.timespan === 'year' ? 20 : 5; // 20 years for yearly, 5 for others
+            correctedFrom = correctedTo - (yearsBack * 365 * 24 * 60 * 60 * 1000);
+            
+            console.log(`🔧 Corrected: from=${correctedFrom} (${new Date(correctedFrom)}) to=${correctedTo} (${new Date(correctedTo)})`);
+        }
 
         // If not in cache or expired, fetch from API
-        const startDate = new Date(from).toISOString().split('T')[0];
-        const endDate = new Date(to).toISOString().split('T')[0];
+        const startDate = new Date(correctedFrom).toISOString().split('T')[0];
+        const endDate = new Date(correctedTo).toISOString().split('T')[0];
         const timeframe = this.getTimeframeCode(period.multiplier, period.timespan);
         
         const url = `${this.baseUrl}${API_VERSION}/ohlcv/data?` + 
-                   `symbol=${symbol.ticker}&start_date=${startDate}&end_date=${endDate}&` +
-                   `timeframe=${timeframe}&source_resolution=1Y`;
-
-        console.log('Fetching data from:', url);
-        const response = await this.fetchWithAuth(url);
-        
-        // Handle different possible response structures
-        let rawData: any[];
-        if (Array.isArray(response)) {
-            rawData = response;
-        } else if (response.data && Array.isArray(response.data)) {
-            rawData = response.data;
-        } else if (response.results && Array.isArray(response.results)) {
-            rawData = response.results;
-        } else if (response.ohlcv && Array.isArray(response.ohlcv)) {
-            rawData = response.ohlcv;
-        } else if (response.values && Array.isArray(response.values)) {
-            rawData = response.values;
-        } else {
-            console.error('Unexpected response structure:', response);
-            throw new Error('Invalid data format received from API');
-        }
-        
-        // Handle both old array format and new object format
-        const data = rawData.map((item: any) => {
-            if (Array.isArray(item)) {
-                // Old format: [timestamp, open, high, low, close, volume]
-                const [timestamp, open, high, low, close, volume] = item;
-                return {
-                    timestamp: timestamp * 1000,
-                    open,
-                    high,
-                    low,
-                    close,
-                    volume
-                };
-            } else {
-                // New v1 format: object with named properties
-                return {
-                    timestamp: (item.unix_time || item.timestamp) * 1000,
-                    open: item.open,
-                    high: item.high,
-                    low: item.low,
-                    close: item.close,
-                    volume: item.volume
-                };
-            }
-        });
-
-        // Store in cache with timestamp
-        this.cache.set(cacheKey, {
-            data,
-            timestamp: Date.now()
-        });
-
-        // Save to localStorage after updating cache
-        this.saveToLocalStorage();
-        
-        return data;
-    }
-
-    // No-op implementations for real-time methods as they're not needed
-    subscribe(_symbol: SymbolInfo, _period: Period, _callback: DatafeedSubscribeCallback): void {}
-    unsubscribe(_symbol: SymbolInfo, _period: Period): void {}
-}
+                   `
