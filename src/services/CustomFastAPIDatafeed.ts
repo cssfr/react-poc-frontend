@@ -181,6 +181,28 @@ export class CustomFastAPIDatafeed implements Datafeed {
         this.saveToLocalStorage();
     }
 
+    /**
+     * Convert period timespan to API timeframe code
+     */
+    private getTimeframeCode(multiplier: number, timespan: string): string {
+        const timespanMap: { [key: string]: string } = {
+            'minute': 'm',
+            'hour': 'h', 
+            'day': 'd',
+            'week': 'w',
+            'month': 'M',  // Capital M for month to distinguish from minute
+            'year': 'Y'
+        };
+        
+        const code = timespanMap[timespan];
+        if (!code) {
+            console.warn(`Unknown timespan: ${timespan}, defaulting to 'm'`);
+            return `${multiplier}m`;
+        }
+        
+        return `${multiplier}${code}`;
+    }
+
     async getHistoryKLineData(symbol: SymbolInfo, period: Period, from: number, to: number): Promise<KLineData[]> {
         // Clean expired entries before checking cache
         this.cleanExpiredEntries();
@@ -198,7 +220,7 @@ export class CustomFastAPIDatafeed implements Datafeed {
         // If not in cache or expired, fetch from API
         const startDate = new Date(from).toISOString().split('T')[0];
         const endDate = new Date(to).toISOString().split('T')[0];
-        const timeframe = `${period.multiplier}${period.timespan.charAt(0)}`;
+        const timeframe = this.getTimeframeCode(period.multiplier, period.timespan);
         
         const url = `${this.baseUrl}${API_VERSION}/ohlcv/data?` + 
                    `symbol=${symbol.ticker}&start_date=${startDate}&end_date=${endDate}&` +
