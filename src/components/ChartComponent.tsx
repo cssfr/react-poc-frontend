@@ -33,7 +33,19 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           ticker: 'ES',
           type: 'FUT',
         },
-        period: { multiplier: 5, timespan: 'minute', text: '5m' },
+        period: { multiplier: 1, timespan: 'hour', text: '1h' },
+        periods: [
+          { multiplier: 1, timespan: 'minute', text: '1m' },
+          { multiplier: 3, timespan: 'minute', text: '3m' },
+          { multiplier: 5, timespan: 'minute', text: '5m' },
+          { multiplier: 10, timespan: 'minute', text: '10m' },
+          { multiplier: 15, timespan: 'minute', text: '15m' },
+          { multiplier: 1, timespan: 'hour', text: '1h' },
+          { multiplier: 1, timespan: 'day', text: '1d' },
+          { multiplier: 1, timespan: 'week', text: '1w' },
+          { multiplier: 1, timespan: 'month', text: '1M' },
+          { multiplier: 1, timespan: 'year', text: '1Y' }
+        ],
         subIndicators: ['VOL'],
         datafeed: new CustomFastAPIDatafeed(
           import.meta.env.VITE_FASTAPI_URL
