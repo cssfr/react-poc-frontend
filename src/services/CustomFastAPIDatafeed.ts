@@ -217,6 +217,11 @@ export class CustomFastAPIDatafeed implements Datafeed {
             return cachedEntry.data;
         }
 
+        // Add temporary debug logging to identify Y-button timestamp issue
+        console.log(`🔍 Debug Y-button: timespan='${period.timespan}', multiplier=${period.multiplier}`);
+        console.log(`🔍 Debug Y-button: from=${from}, to=${to}`);
+        console.log(`🔍 Debug Y-button: from date=${new Date(from)}, to date=${new Date(to)}`);
+
         // If not in cache or expired, fetch from API
         const startDate = new Date(from).toISOString().split('T')[0];
         const endDate = new Date(to).toISOString().split('T')[0];
