@@ -5,18 +5,18 @@ import { Input } from './ui'
 import { Label } from './ui'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui'
 import { Alert, AlertDescription } from './ui'
-import { useTheme } from '../contexts/ThemeContext'
+import { useTheme, type Theme } from '../lib/contexts/ThemeContext'
 import { Moon, Sun, Laptop, TrendingUp, BarChart3, AlertCircle } from 'lucide-react'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [isSignUp, setIsSignUp] = useState(false)
   const { theme, setTheme } = useTheme()
 
-  const handleAuth = async (e) => {
+  const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -37,14 +37,14 @@ export default function LoginForm() {
         if (error) throw error
       }
     } catch (error) {
-      setError(error.message)
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
   }
 
   const ThemeToggle = () => {
-    const themes = [
+    const themes: Array<{ value: Theme; icon: React.ElementType; label: string }> = [
       { value: 'light', icon: Sun, label: 'Light' },
       { value: 'dark', icon: Moon, label: 'Dark' },
       { value: 'system', icon: Laptop, label: 'System' },
