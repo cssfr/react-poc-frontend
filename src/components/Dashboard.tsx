@@ -488,6 +488,8 @@ export default function Dashboard() {
                 <ChartComponent 
                   height="600px"
                   className="w-full"
+                  toolbarStyle="icons-only"
+                  theme="auto"
                 />
               </div>
             </div>
