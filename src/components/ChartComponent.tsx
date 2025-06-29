@@ -23,33 +23,51 @@ import '@klinecharts/pro/dist/klinecharts-pro.css';
 
 /**
  * Generates CSS for toolbar styling
- * Minimal CSS approach to hide text labels when needed
+ * Production version - hides text labels while preserving original button styling
  */
 const generateToolbarCSS = (toolbarStyle: ToolbarStyle): string => {
   if (toolbarStyle !== 'icons-only') return '';
   
   return `
-    /* Hide text labels in toolbar buttons, keep icons */
-    .klinecharts-pro [class*="period"] button > span:last-child,
-    .klinecharts-pro [class*="toolbar"] button > span:last-child,
-    .klinecharts-pro [class*="header"] button > span:not(:first-child) {
+    /* Hide text in period buttons while preserving original styling */
+    .klinecharts-pro span.item.period {
+      font-size: 0 !important;
+      text-indent: -9999px !important;
+      overflow: hidden !important;
+      min-width: 32px !important;
+      position: relative !important;
+    }
+    
+    /* Hide text in toolbar tools (Indicator, Timezone, Settings, etc.) */
+    .klinecharts-pro .item.tools span {
       display: none !important;
     }
     
-    /* Adjust button sizing for icon-only mode */
-    .klinecharts-pro [class*="period"] button,
-    .klinecharts-pro [class*="toolbar"] button,
-    .klinecharts-pro [class*="header"] button {
-      min-width: 36px;
-      padding: 6px 8px;
-      justify-content: center;
+    /* Add small dot indicators for period buttons */
+    .klinecharts-pro span.item.period::before {
+      content: '●' !important;
+      font-size: 8px !important;
+      text-indent: 0 !important;
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      color: currentColor !important;
+      opacity: 0.7 !important;
     }
     
-    /* Ensure icons remain centered */
-    .klinecharts-pro [class*="period"] button > span:first-child,
-    .klinecharts-pro [class*="toolbar"] button > span:first-child,
-    .klinecharts-pro [class*="header"] button > span:first-child {
-      margin: 0 auto;
+    /* Highlight selected period button dot */
+    .klinecharts-pro span.item.period.selected::before {
+      opacity: 1 !important;
+      font-size: 10px !important;
+    }
+    
+    /* Ensure proper button sizing and centering */
+    .klinecharts-pro span.item.period {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 6px 8px !important;
     }
   `;
 };
