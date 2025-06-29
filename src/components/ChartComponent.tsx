@@ -41,8 +41,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           { multiplier: 10, timespan: 'minute', text: '10m' },
           { multiplier: 15, timespan: 'minute', text: '15m' },
           { multiplier: 1, timespan: 'hour', text: '1h' },
-          { multiplier: 1, timespan: 'day', text: '1d' },
-          { multiplier: 1, timespan: 'week', text: '1w' },
+          { multiplier: 1, timespan: 'day', text: '1D' },
+          { multiplier: 1, timespan: 'week', text: '1W' },
           { multiplier: 1, timespan: 'month', text: '1M' },
           { multiplier: 1, timespan: 'year', text: '1Y' }
         ],
