@@ -23,51 +23,25 @@ import '@klinecharts/pro/dist/klinecharts-pro.css';
 
 /**
  * Generates CSS for toolbar styling
- * Production version - hides text labels while preserving original button styling
+ * Fixed: Only hide non-essential toolbar text, keep timeframe labels visible
  */
 const generateToolbarCSS = (toolbarStyle: ToolbarStyle): string => {
   if (toolbarStyle !== 'icons-only') return '';
   
   return `
-    /* Hide text in period buttons while preserving original styling */
-    .klinecharts-pro span.item.period {
-      font-size: 0 !important;
-      text-indent: -9999px !important;
-      overflow: hidden !important;
-      min-width: 32px !important;
-      position: relative !important;
-    }
-    
-    /* Hide text in toolbar tools (Indicator, Timezone, Settings, etc.) */
+    /* ONLY hide text in toolbar tools (Indicator, Timezone, Settings, etc.) */
     .klinecharts-pro .item.tools span {
       display: none !important;
     }
     
-    /* Add small dot indicators for period buttons */
-    .klinecharts-pro span.item.period::before {
-      content: '●' !important;
-      font-size: 8px !important;
-      text-indent: 0 !important;
-      position: absolute !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      color: currentColor !important;
-      opacity: 0.7 !important;
-    }
+    /* Do NOT touch period buttons - keep timeframe labels visible */
+    /* Remove all the period button styling that was hiding text */
     
-    /* Highlight selected period button dot */
-    .klinecharts-pro span.item.period.selected::before {
-      opacity: 1 !important;
-      font-size: 10px !important;
-    }
-    
-    /* Ensure proper button sizing and centering */
-    .klinecharts-pro span.item.period {
-      display: inline-flex !important;
-      align-items: center !important;
-      justify-content: center !important;
+    /* Optional: Make toolbar tool buttons more compact since they have no text */
+    .klinecharts-pro .item.tools {
+      min-width: 36px !important;
       padding: 6px 8px !important;
+      justify-content: center !important;
     }
   `;
 };
