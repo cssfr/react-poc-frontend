@@ -19,7 +19,13 @@ import {
   getKLineChartTheme 
 } from '../lib/chartTheme';
 import { ChartComponentProps, ToolbarStyle } from '../types/chart';
+import { vwap } from '../lib/indicators';
 import '@klinecharts/pro/dist/klinecharts-pro.css';
+
+// Register custom indicators globally when module loads
+registerIndicator(vwap);
+
+console.log('📊 VWAP indicator registered globally');
 
 /**
  * Generates CSS for toolbar styling
@@ -195,106 +201,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           datafeed: datafeed
         });
         
-        // Register VWAP indicator globally  
-        registerIndicator({
-          name: 'VWAP',
-          shortName: 'VWAP',
-          series: 'normal' as any,
-          calcParams: [],
-          precision: 2,
-          shouldOhlc: false,
-          shouldFormatBigNumber: false,
-          visible: true,
-          zLevel: 0,
-          figures: [
-            {
-              key: 'vwap',
-              title: 'VWAP',
-              type: 'line',
-              styles: () => ({
-                color: '#FF6600'
-              } as any)
-            }
-          ],
-          calc: function(kLineDataList: any[]) {
-            const result: any[] = [];
-            
-            if (!kLineDataList || kLineDataList.length === 0) {
-              return result;
-            }
-            
-            let cumulativePriceVolume = 0;
-            let cumulativeVolume = 0;
-            let currentDay: string | null = null;
-            
-            // Helper function to get day from timestamp
-            function getDay(timestamp: number): string {
-              const date = new Date(timestamp);
-              return date.getUTCFullYear() + '-' + 
-                     String(date.getUTCMonth() + 1).padStart(2, '0') + '-' + 
-                     String(date.getUTCDate()).padStart(2, '0');
-            }
-            
-            for (let i = 0; i < kLineDataList.length; i++) {
-              const dataItem = kLineDataList[i];
-              
-              // Extract OHLCV data
-              const high = dataItem.high || 0;
-              const low = dataItem.low || 0;
-              const close = dataItem.close || 0;
-              const volume = dataItem.volume || 0;
-              const timestamp = dataItem.timestamp;
-              
-              // Calculate typical price
-              const typicalPrice = (high + low + close) / 3;
-              
-              // Check if we're on a new day (reset VWAP calculation)
-              const day = getDay(timestamp);
-              if (currentDay !== day) {
-                currentDay = day;
-                cumulativePriceVolume = 0;
-                cumulativeVolume = 0;
-              }
-              
-              // Update cumulative values
-              if (volume > 0) {
-                cumulativePriceVolume += typicalPrice * volume;
-                cumulativeVolume += volume;
-              }
-              
-              // Calculate VWAP
-              let vwap = null;
-              if (cumulativeVolume > 0) {
-                vwap = cumulativePriceVolume / cumulativeVolume;
-              }
-              
-              // Add to result
-              result.push({
-                vwap: vwap
-              });
-            }
-            
-            return result;
-          },
-          
-          createTooltipDataSource: function(params: any) {
-            const { indicator, calculation } = params;
-            
-            return {
-              name: indicator.shortName || indicator.name,
-              calcParamsText: '',
-              icons: [],
-              values: [
-                {
-                  title: 'VWAP: ',
-                  value: calculation.vwap ? calculation.vwap.toFixed(indicator.precision || 2) : '--'
-                }
-              ]
-            };
-          }
-        } as any);
-        
         console.log('📈 Chart initialized successfully with symbol:', defaultSymbol.ticker);
+        console.log('📊 VWAP indicator registered and should be available in the indicators menu');
         
       } catch (error) {
         console.error('❌ Failed to initialize chart:', error);
