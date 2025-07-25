@@ -42,12 +42,12 @@ const vwap = {
     let cumulativeVolume = 0;
     let currentDay: string | null = null;
     
-    // Helper function to get day from timestamp
+    // Helper function to get day from timestamp using LOCAL time
     function getDay(timestamp: number): string {
       const date = new Date(timestamp);
-      return date.getUTCFullYear() + '-' + 
-             String(date.getUTCMonth() + 1).padStart(2, '0') + '-' + 
-             String(date.getUTCDate()).padStart(2, '0');
+      return date.getFullYear() + '-' + 
+             String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+             String(date.getDate()).padStart(2, '0');
     }
     
     const result: VwapData[] = [];
