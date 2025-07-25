@@ -194,13 +194,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           period: { multiplier: 1, timespan: 'hour', text: '1h' },
           periods: DEFAULT_PERIODS,
           
-          // Technical indicators
+          // Technical indicators - Add VWAP to make it available in menu
+          mainIndicators: ['VWAP'],
           subIndicators: ['VOL'],
           
           // Data source - reuse the same datafeed instance
           datafeed: datafeed
         });
         
+        // Verify that VWAP is properly integrated
         console.log('📈 Chart initialized successfully with symbol:', defaultSymbol.ticker);
         console.log('📊 VWAP indicator registered and should be available in the indicators menu');
         

@@ -28,15 +28,14 @@ const vwap = {
     {
       key: 'vwap',
       title: 'VWAP: ',
-      type: 'line',
-      styles: () => ({
-        color: '#FF6600'
-      })
+      type: 'line'
     }
   ],
-  calc: (dataList: KLineData[]) => {
-    if (!dataList || dataList.length === 0) {
-      return {};
+  calc: (dataList: KLineData[], _indicator: any) => {
+    // Add comprehensive error checking
+    if (!dataList || !Array.isArray(dataList) || dataList.length === 0) {
+      console.warn('VWAP calc: Invalid or empty dataList');
+      return [];
     }
     
     let cumulativePriceVolume = 0;
@@ -51,12 +50,22 @@ const vwap = {
              String(date.getUTCDate()).padStart(2, '0');
     }
     
-    return dataList.reduce((prev: Record<number, VwapData>, kLineData: KLineData) => {
-      // Extract OHLCV data
-      const high = kLineData.high || 0;
-      const low = kLineData.low || 0;
-      const close = kLineData.close || 0;
-      const volume = kLineData.volume || 0;
+    const result: VwapData[] = [];
+    
+    for (let i = 0; i < dataList.length; i++) {
+      const kLineData = dataList[i];
+      
+      // Validate data item
+      if (!kLineData || typeof kLineData.timestamp !== 'number') {
+        result.push({ vwap: undefined });
+        continue;
+      }
+      
+      // Extract OHLCV data with validation
+      const high = typeof kLineData.high === 'number' ? kLineData.high : 0;
+      const low = typeof kLineData.low === 'number' ? kLineData.low : 0;
+      const close = typeof kLineData.close === 'number' ? kLineData.close : 0;
+      const volume = typeof kLineData.volume === 'number' ? kLineData.volume : 0;
       const timestamp = kLineData.timestamp;
       
       // Calculate typical price
@@ -77,32 +86,16 @@ const vwap = {
       }
       
       // Calculate VWAP
-      const vwapResult: VwapData = {};
-      if (cumulativeVolume > 0) {
-        vwapResult.vwap = cumulativePriceVolume / cumulativeVolume;
-      }
+      const vwapValue = cumulativeVolume > 0 ? cumulativePriceVolume / cumulativeVolume : undefined;
       
-      // Store result with timestamp as key
-      prev[timestamp] = vwapResult;
-      return prev;
-    }, {});
-  },
-  
-  createTooltipDataSource: (params: any) => {
-    const { indicator, calculation } = params;
+      result.push({
+        vwap: vwapValue
+      });
+    }
     
-    return {
-      name: indicator.shortName || indicator.name,
-      calcParamsText: '',
-      icons: [],
-      values: [
-        {
-          title: 'VWAP: ',
-          value: calculation.vwap ? calculation.vwap.toFixed(indicator.precision || 2) : '--'
-        }
-      ]
-    };
+    console.log('VWAP calc result length:', result.length, 'sample:', result.slice(0, 3));
+    return result;
   }
-} as any;
+};
 
 export default vwap; 
