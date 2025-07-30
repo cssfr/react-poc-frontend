@@ -11,14 +11,16 @@ import {
   TrendingUp, BarChart3, Settings, Plus, Moon, Sun, Laptop,
   LogOut, Activity, DollarSign, TrendingDown, Clock,
   Play, RefreshCw, AlertCircle, CheckCircle, XCircle,
-  User as UserIcon, ChevronsLeft
+  User as UserIcon, ChevronsLeft, Target
 } from 'lucide-react'
 import CreateBacktestModal from './CreateBacktestModal'
 import CreateStrategyModal from './CreateStrategyModal'
 import BacktestDetailsModal from './BacktestDetailsModal'
 import ChartComponent from './ChartComponent'
+import { ResultsPage, ResultsErrorBoundary } from './results'
+import TestTradePage from './TestTradePage';
 
-type NavItemId = 'dashboard' | 'backtests' | 'strategies' | 'charts';
+type NavItemId = 'dashboard' | 'backtests' | 'strategies' | 'charts' | 'results' | 'test-trade';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<NavItemId>('dashboard')
@@ -178,6 +180,8 @@ export default function Dashboard() {
               { id: 'backtests' as const, label: 'Backtests', icon: Activity },
               { id: 'strategies' as const, label: 'Strategies', icon: Settings },
               { id: 'charts' as const, label: 'Charts', icon: BarChart3 },
+              { id: 'results' as const, label: 'Results', icon: TrendingUp },
+              { id: 'test-trade' as const, label: 'Test Trade', icon: Target },
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -493,6 +497,16 @@ export default function Dashboard() {
                 />
               </div>
             </div>
+          )}
+
+          {activeTab === 'test-trade' && (
+            <TestTradePage />
+          )}
+
+          {activeTab === 'results' && (
+            <ResultsErrorBoundary>
+              <ResultsPage />
+            </ResultsErrorBoundary>
           )}
 
         </main>
