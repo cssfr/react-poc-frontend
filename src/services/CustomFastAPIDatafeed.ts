@@ -252,6 +252,8 @@ export class CustomFastAPIDatafeed implements Datafeed {
     }
 
     async getHistoryKLineData(symbol: SymbolInfo, period: Period, from: number, to: number): Promise<KLineData[]> {
+        console.log('🔵 getHistoryKLineData called with symbol:', symbol.ticker, 'period:', `${period.multiplier}${period.timespan}`, 'from:', new Date(from), 'to:', new Date(to));
+        
         // Clean expired entries before checking cache
         this.cleanExpiredEntries();
 
@@ -261,7 +263,7 @@ export class CustomFastAPIDatafeed implements Datafeed {
         // Check if data exists in cache and is not expired
         const cachedEntry = this.cache.get(cacheKey);
         if (cachedEntry && (Date.now() - cachedEntry.timestamp <= this.cacheConfig.expirationTime)) {
-            console.log('Returning cached data for:', cacheKey);
+            console.log('📦 Returning cached data for:', cacheKey);
             return cachedEntry.data;
         }
 
@@ -285,7 +287,14 @@ export class CustomFastAPIDatafeed implements Datafeed {
                    `symbol=${symbol.ticker}&start_date=${startDate}&end_date=${endDate}&` +
                    `timeframe=${timeframe}&source_resolution=1Y`;
 
-        console.log('Fetching data from:', url);
+        console.log('🌐 Fetching OHLCV data from API:', url);
+        console.log('📊 Request details:', {
+            symbol: symbol.ticker,
+            period: `${period.multiplier}${period.timespan}`,
+            startDate,
+            endDate,
+            timeframe
+        });
         const response = await this.fetchWithAuth(url);
         
         // Handle different possible response structures

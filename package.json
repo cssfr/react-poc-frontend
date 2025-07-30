@@ -9,9 +9,11 @@
   "dependencies": {
     "@klinecharts/pro": "^0.1.1",
     "@supabase/supabase-js": "^2.0.0",
+    "@types/papaparse": "^5.3.16",
     "clsx": "^2.1.1",
     "klinecharts": "^9.8.12",
     "lucide-react": "^0.263.1",
+    "papaparse": "^5.5.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "tailwind-merge": "^2.6.0"
